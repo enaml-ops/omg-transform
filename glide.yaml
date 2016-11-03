@@ -6,5 +6,3 @@ import:
   version: master
 - package: github.com/enaml-ops/enaml
   version: ^0.0.16
-- package: gopkg.in/urfave/cli.v2
-  version: c72728f42438425ffcd487986936357e17ebba3f 

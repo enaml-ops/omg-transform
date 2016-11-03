@@ -1,7 +1,8 @@
 omg-transform
 =============
 
-An `enaml` tool that allows you to perform transformations on bosh manifests.
+An [`enaml`](https://github.com/enaml-ops/enaml) based tool 
+that allows you to perform transformations on bosh manifests.
 
 ## Development Setup
 
@@ -20,29 +21,14 @@ go test `glide nv`
 By default, `omg-transform` attempts to read a manifest from standard in 
 and writes the transformed manifest to standard out.
 
-The input manifest can also be read from a file by using the `-f` flag.
+For example, to run a transformation on a manifest produced by 
+[`omg-cli`](https://github.com/enaml-ops/omg-cli):
 
-_Example from stdin:_
-
-`omg-cli deploy-product --print-manifest cloudfoundry-plugin-linux | omg-transform <TRANSFORM> [flags...]`
-
-_From file:_
-
-`omg-transform -f cf.yml <TRANSFORM> [flags...]`
+```sh
+omg-cli deploy-product --print-manifest cloudfoundry-plugin-linux | omg-transform <TRANSFORM> [flags...]
+```
 
 ## Transformations
 
-### `change-network`: Change Instance Group Network
-
-Move instance group to new network:
-
-`omg-cli deploy-product --print-manifest cloudfoundry-plugin | omg-transform change-network --move diego_cell:apps-network`
-
-### `clone`: Clone Instance Group
-
-Clone the `router` instance group, naming the new instance group `router2`.
-
-TODO: customize # instances, other ig fields
-
-`omg-transform -f cf.yml clone -g router -o router2`
-
+ - `change-network`: change an instance group's network
+ - `clone`: clone an instance group
