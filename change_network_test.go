@@ -10,6 +10,30 @@ import (
 )
 
 var _ = Describe("change network", func() {
+
+	Context("when creating the transformation", func() {
+		It("returns an error if no arguments are provided", func() {
+			_, err := ChangeNetworkTransformation(nil)
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns an error if the instance-group argument is missing", func() {
+			_, err := ChangeNetworkTransformation([]string{"-network", "net"})
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns an error if the network argument is missing", func() {
+			_, err := ChangeNetworkTransformation([]string{"-instance-group", "foo"})
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns a transformation when given valid args", func() {
+			t, err := ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net"})
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(t).ShouldNot(BeNil())
+		})
+	})
+
 	Context("PCF 1.8 AWS manifest", func() {
 		var (
 			manifest *enaml.DeploymentManifest
