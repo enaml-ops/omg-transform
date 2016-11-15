@@ -18,6 +18,7 @@ var Version = "v0.0.1"
 func init() {
 	RegisterTransformationBuilder("change-network", ChangeNetworkTransformation)
 	RegisterTransformationBuilder("clone", CloneTransformation)
+	RegisterTransformationBuilder("change-az", ChangeAZTransformation)
 }
 
 func main() {
