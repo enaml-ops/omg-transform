@@ -32,6 +32,7 @@ omg-cli deploy-product --print-manifest cloudfoundry-plugin-linux | omg-transfor
 
  - `change-network`: change an instance group's network
  - `clone`: clone an instance group
+ - `change-az`: change an instance group's AZs
 
 ## Adding a new transformation
 
