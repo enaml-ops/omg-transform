@@ -25,8 +25,20 @@ func (a *AZChanger) Apply(dm *enaml.DeploymentManifest) error {
 	return nil
 }
 
+// split is like strings.Split but does not return empty elements.
+func split(str, sep string) []string {
+	orig := strings.Split(str, sep)
+	var result []string
+	for i := range orig {
+		if orig[i] != "" {
+			result = append(result, orig[i])
+		}
+	}
+	return result
+}
+
 func (a *AZChanger) flagSet() *flag.FlagSet {
-	fs := flag.NewFlagSet("change-az", flag.ExitOnError)
+	fs := flag.NewFlagSet("change-az", flag.ContinueOnError)
 	fs.StringVar(&a.InstanceGroup, "instance-group", "", "name of the instance group")
 	fs.StringVar(&a.azsFlag, "az", "", "a comma separated list of az names")
 	return fs
@@ -46,18 +58,11 @@ func ChangeAZTransformation(args []string) (Transformation, error) {
 	if a.azsFlag == "" {
 		return nil, errors.New("missing required flag -az")
 	}
-	tempazs := strings.Split(a.azsFlag, ",")
 
 	if strings.Contains(a.azsFlag, " ") {
 		return nil, errors.New("invalid format for az, cannot contain space")
 	}
-
-	for i := range tempazs {
-		if tempazs[i] != "" {
-			a.AZs = append(a.AZs, tempazs[i])
-		}
-	}
-
+	a.AZs = split(a.azsFlag, ",")
 	if len(a.AZs) == 0 {
 		return nil, errors.New("invalid format for az, must be comma-separated")
 	}

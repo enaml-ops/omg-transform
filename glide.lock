@@ -1,10 +1,10 @@
-hash: ad2a6424141a3454769b73f38f2969b6116955b56f574f00598e5801ed091b58
-updated: 2016-11-03T18:21:29.984002566-04:00
+hash: 36ca76bc106e202bda91c7b878db9ffa32c9a7fe76787bff8f20055b57b4fb63
+updated: 2016-11-16T11:12:47.180039871-08:00
 imports:
 - name: github.com/enaml-ops/enaml
-  version: 354a165b4ef98f0e154b6a0d8e8a54138abac102
+  version: daa906ffdfea29e28f26a5965100f645736de450
 - name: github.com/onsi/ginkgo
-  version: a8ccd817611666211fdf6e6a752174a0db8374a8
+  version: 00054c0bb96fc880d4e0be1b90937fad438c5290
   subpackages:
   - config
   - internal/codelocation
@@ -23,7 +23,7 @@ imports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: ff4bc6b6f9f5affa66635cd04d31d2a7ee21ffd6
+  version: 2b6ed62707a2f5fdf1ba9cd856cdeec6bfff6b61
   subpackages:
   - format
   - internal/assertion
