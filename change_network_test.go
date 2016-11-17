@@ -128,7 +128,7 @@ var _ = Describe("change network", func() {
 			}
 		})
 
-		It("changes the network's static IPs for an existing partition", func() {
+		It("changes the network's static IPs for an existing partition (select by instance-group)", func() {
 			const newNetwork = "newNetwork"
 			n := NetworkMover{
 				InstanceGroup: "mysql_proxy",
@@ -145,6 +145,26 @@ var _ = Describe("change network", func() {
 			Ω(ig.Networks[0].StaticIPs).Should(ConsistOf("10.0.0.3-10.0.0.10", "10.0.16.5"))
 		})
 
+		It("changes the network's static IPs for an existing partition (select by lifecycle)", func() {
+			const newNetwork = "newNetwork"
+			n := NetworkMover{
+				Lifecycle: "errand",
+				Network:   newNetwork,
+				StaticIPs: []string{"10.0.0.3-10.0.0.10", "10.0.16.5"},
+			}
+			Ω(n.Apply(manifest)).Should(Succeed())
+
+			for _, ig := range manifest.InstanceGroups {
+				if ig.Lifecycle == n.Lifecycle {
+					Ω(ig.Networks).Should(HaveLen(1))
+					Ω(ig.Networks[0].Name).Should(Equal(newNetwork))
+
+					Ω(ig.Networks[0].StaticIPs).Should(HaveLen(2))
+					Ω(ig.Networks[0].StaticIPs).Should(ConsistOf("10.0.0.3-10.0.0.10", "10.0.16.5"))
+				}
+			}
+		})
+
 		It("returns an error when supplied with a non-existent partition", func() {
 			n := NetworkMover{
 				InstanceGroup: "this-instance-group-doesnt-exist",
@@ -153,4 +173,34 @@ var _ = Describe("change network", func() {
 			Ω(n.Apply(manifest)).ShouldNot(Succeed())
 		})
 	})
+
+	Context("When operating on sample instance groups", func() {
+
+		It("Does not change the instance groups with non-matching lifecycle", func() {
+			ig := enaml.InstanceGroup{
+				Lifecycle: "notErrand",
+				Networks: []enaml.Network{
+					enaml.Network{
+						Name: "networkName",
+					},
+				},
+			}
+			const newNetwork = "newNetwork"
+			n := NetworkMover{
+				Lifecycle: "errand",
+				Network:   newNetwork,
+			}
+			dm := enaml.DeploymentManifest{
+				InstanceGroups: []*enaml.InstanceGroup{
+					&ig,
+				},
+			}
+			err := n.Apply(&dm)
+			Ω(err).ShouldNot(HaveOccurred())
+
+			Ω(ig.Networks[0].Name).Should(Equal("networkName"))
+		})
+
+	})
+
 })
