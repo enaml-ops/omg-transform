@@ -8,13 +8,14 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/enaml-ops/enaml"
 	yaml "gopkg.in/yaml.v2"
 )
 
 // Version is the version of omg-transform.
-var Version = "v0.0.1"
+var Version = "v0.0.0-localcompile"
 
 func init() {
 	RegisterTransformationBuilder("change-network", ChangeNetworkTransformation)
@@ -24,11 +25,18 @@ func init() {
 }
 
 func main() {
+
+	if len(os.Args) == 2 && strings.HasSuffix(os.Args[1], "version") {
+		fmt.Fprintf(os.Stdout, "Version: %s \n", Version)
+		os.Exit(0)
+	}
+
 	if len(os.Args) <= 1 {
 		fmt.Fprintf(os.Stderr, "Usage: %s <transform> [args...]\n", os.Args[0])
 		writeTransforms(os.Stderr)
 		os.Exit(1)
 	}
+
 	name := os.Args[1]
 	builder, ok := transformationBuilders[name]
 	if !ok {
