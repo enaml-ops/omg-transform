@@ -17,14 +17,36 @@ var _ = Describe("change network", func() {
 			Ω(err).Should(HaveOccurred())
 		})
 
-		It("returns an error if the instance-group argument is missing", func() {
+		It("returns an error if the instance-group and lifecycle argument is missing", func() {
 			_, err := ChangeNetworkTransformation([]string{"-network", "net"})
 			Ω(err).Should(HaveOccurred())
 		})
 
-		It("returns an error if the network argument is missing", func() {
+		It("returns an error if both instance-group and lifecycle are present", func() {
+			_, err := ChangeNetworkTransformation([]string{"-lifecycle", "life", "-network", "net", "-instance-group", "foo"})
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns an error if the network argument is missing (select by instance-group)", func() {
 			_, err := ChangeNetworkTransformation([]string{"-instance-group", "foo"})
 			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns an error if network argument is missing (select by lifecycle)", func() {
+			_, err := ChangeNetworkTransformation([]string{"-lifecycle", "life"})
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns a transformation when given valid args (select by lifecycle)", func() {
+			t, err := ChangeNetworkTransformation([]string{"-network", "net", "-lifecycle", "life"})
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(t).ShouldNot(BeNil())
+		})
+
+		It("returns a transformation when given valid args (select by instance-group)", func() {
+			t, err := ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net"})
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(t).ShouldNot(BeNil())
 		})
 
 		It("returns an error when given invalid static IP ranges", func() {
@@ -77,7 +99,7 @@ var _ = Describe("change network", func() {
 			manifest = enaml.NewDeploymentManifestFromFile(f)
 		})
 
-		It("changes the network name for an existing partition", func() {
+		It("changes the network name for an existing partition (select by instance-group)", func() {
 			const newNetwork = "newNetwork"
 			n := NetworkMover{
 				InstanceGroup: "mysql_proxy",
@@ -90,7 +112,23 @@ var _ = Describe("change network", func() {
 			Ω(ig.Networks[0].Name).Should(Equal(newNetwork))
 		})
 
-		It("changes the network's static IPs for an existing partition", func() {
+		It("changes the network name for an existing partition (select by lifecycle)", func() {
+			const newNetwork = "newNetwork"
+			n := NetworkMover{
+				Lifecycle: "errand",
+				Network:   newNetwork,
+			}
+			Ω(n.Apply(manifest)).Should(Succeed())
+
+			for _, ig := range manifest.InstanceGroups {
+				if ig.Lifecycle == n.Lifecycle {
+					Ω(ig.Networks).Should(HaveLen(1))
+					Ω(ig.Networks[0].Name).Should(Equal(newNetwork), "Instance group "+ig.Name+" failed to change.")
+				}
+			}
+		})
+
+		It("changes the network's static IPs for an existing partition (select by instance-group)", func() {
 			const newNetwork = "newNetwork"
 			n := NetworkMover{
 				InstanceGroup: "mysql_proxy",
@@ -107,6 +145,26 @@ var _ = Describe("change network", func() {
 			Ω(ig.Networks[0].StaticIPs).Should(ConsistOf("10.0.0.3-10.0.0.10", "10.0.16.5"))
 		})
 
+		It("changes the network's static IPs for an existing partition (select by lifecycle)", func() {
+			const newNetwork = "newNetwork"
+			n := NetworkMover{
+				Lifecycle: "errand",
+				Network:   newNetwork,
+				StaticIPs: []string{"10.0.0.3-10.0.0.10", "10.0.16.5"},
+			}
+			Ω(n.Apply(manifest)).Should(Succeed())
+
+			for _, ig := range manifest.InstanceGroups {
+				if ig.Lifecycle == n.Lifecycle {
+					Ω(ig.Networks).Should(HaveLen(1))
+					Ω(ig.Networks[0].Name).Should(Equal(newNetwork))
+
+					Ω(ig.Networks[0].StaticIPs).Should(HaveLen(2))
+					Ω(ig.Networks[0].StaticIPs).Should(ConsistOf("10.0.0.3-10.0.0.10", "10.0.16.5"))
+				}
+			}
+		})
+
 		It("returns an error when supplied with a non-existent partition", func() {
 			n := NetworkMover{
 				InstanceGroup: "this-instance-group-doesnt-exist",
@@ -115,4 +173,34 @@ var _ = Describe("change network", func() {
 			Ω(n.Apply(manifest)).ShouldNot(Succeed())
 		})
 	})
+
+	Context("When operating on sample instance groups", func() {
+
+		It("Does not change the instance groups with non-matching lifecycle", func() {
+			ig := enaml.InstanceGroup{
+				Lifecycle: "notErrand",
+				Networks: []enaml.Network{
+					enaml.Network{
+						Name: "networkName",
+					},
+				},
+			}
+			const newNetwork = "newNetwork"
+			n := NetworkMover{
+				Lifecycle: "errand",
+				Network:   newNetwork,
+			}
+			dm := enaml.DeploymentManifest{
+				InstanceGroups: []*enaml.InstanceGroup{
+					&ig,
+				},
+			}
+			err := n.Apply(&dm)
+			Ω(err).ShouldNot(HaveOccurred())
+
+			Ω(ig.Networks[0].Name).Should(Equal("networkName"))
+		})
+
+	})
+
 })
