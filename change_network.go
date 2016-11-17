@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net"
+	"strings"
 
 	"github.com/enaml-ops/enaml"
 )
@@ -13,6 +15,8 @@ import (
 type NetworkMover struct {
 	InstanceGroup string
 	Network       string
+	StaticIPs     []string
+	ipsFlag       string
 }
 
 func (n *NetworkMover) Apply(dm *enaml.DeploymentManifest) error {
@@ -26,6 +30,11 @@ func (n *NetworkMover) Apply(dm *enaml.DeploymentManifest) error {
 	}
 
 	ig.Networks[0].Name = n.Network
+
+	if len(n.StaticIPs) > 0 {
+		ig.Networks[0].StaticIPs = n.StaticIPs
+	}
+
 	return nil
 }
 
@@ -33,6 +42,7 @@ func (n *NetworkMover) flagSet() *flag.FlagSet {
 	fs := flag.NewFlagSet("change-network", flag.ExitOnError)
 	fs.StringVar(&n.InstanceGroup, "instance-group", "", "name of the instance group")
 	fs.StringVar(&n.Network, "network", "", "the name of the network to use")
+	fs.StringVar(&n.ipsFlag, "static-ips", "", "comma-separated list of static IP ranges to set on the network")
 	return fs
 }
 
@@ -51,6 +61,24 @@ func ChangeNetworkTransformation(args []string) (Transformation, error) {
 	}
 	if n.Network == "" {
 		return nil, errors.New("missing required flag network")
+	}
+	if n.ipsFlag != "" {
+		n.StaticIPs = split(n.ipsFlag, ",")
+		if len(n.StaticIPs) == 0 {
+			return nil, errors.New("invalid -static-ips flag")
+		}
+		for _, ipRange := range n.StaticIPs {
+			c := strings.Count(ipRange, "-")
+			if c > 1 {
+				return nil, fmt.Errorf("invalid IP range %q", ipRange)
+			}
+			parts := strings.Split(ipRange, "-")
+			for _, ipStr := range parts {
+				if ip := net.ParseIP(ipStr); ip == nil {
+					return nil, fmt.Errorf("%q is not a valid IP address", ipStr)
+				}
+			}
+		}
 	}
 	return n, nil
 }

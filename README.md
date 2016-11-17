@@ -34,6 +34,7 @@ omg-cli deploy-product --print-manifest cloudfoundry-plugin-linux | omg-transfor
  - `clone`: clone an instance group
  - `change-az`: change an instance group's AZs
  - `add-vm-extension`: add a vm extension to an existing instance group
+ - `add-tags`: add key-value pairs for VM tagging
 
 ## Adding a new transformation
 

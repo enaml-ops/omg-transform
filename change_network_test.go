@@ -27,8 +27,41 @@ var _ = Describe("change network", func() {
 			Ω(err).Should(HaveOccurred())
 		})
 
-		It("returns a transformation when given valid args", func() {
+		It("returns an error when given invalid static IP ranges", func() {
+			_, err := ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", ",,"})
+			Ω(err).Should(HaveOccurred())
+
+			_, err = ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "1.2.3.4-1.2.3.10-1.2.3.11"})
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns an error when given invalid IP addresses", func() {
+			_, err := ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "1.2.3.4-1.2.3.X"})
+			Ω(err).Should(HaveOccurred())
+
+			_, err = ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "abc,def"})
+			Ω(err).Should(HaveOccurred())
+
+			_, err = ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "10.0.0.0-10.0.0.2,foo-bar"})
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns a transformation when given valid args (no IPs)", func() {
 			t, err := ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net"})
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(t).ShouldNot(BeNil())
+		})
+
+		It("returns a transformation when given valid args (with IPs)", func() {
+			t, err := ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "1.2.3.4-1.2.3.10"})
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(t).ShouldNot(BeNil())
+
+			t, err = ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "1.2.3.4-1.2.3.10,1.2.3.15-1.2.3.20"})
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(t).ShouldNot(BeNil())
+
+			t, err = ChangeNetworkTransformation([]string{"-instance-group", "foo", "-network", "net", "-static-ips", "1.2.3.4,1.2.3.6"})
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(t).ShouldNot(BeNil())
 		})
@@ -44,7 +77,7 @@ var _ = Describe("change network", func() {
 			manifest = enaml.NewDeploymentManifestFromFile(f)
 		})
 
-		It("changes the network for an existing partition", func() {
+		It("changes the network name for an existing partition", func() {
 			const newNetwork = "newNetwork"
 			n := NetworkMover{
 				InstanceGroup: "mysql_proxy",
@@ -55,6 +88,23 @@ var _ = Describe("change network", func() {
 			ig := manifest.GetInstanceGroupByName("mysql_proxy")
 			Ω(ig.Networks).Should(HaveLen(1))
 			Ω(ig.Networks[0].Name).Should(Equal(newNetwork))
+		})
+
+		It("changes the network's static IPs for an existing partition", func() {
+			const newNetwork = "newNetwork"
+			n := NetworkMover{
+				InstanceGroup: "mysql_proxy",
+				Network:       newNetwork,
+				StaticIPs:     []string{"10.0.0.3-10.0.0.10", "10.0.16.5"},
+			}
+			Ω(n.Apply(manifest)).Should(Succeed())
+
+			ig := manifest.GetInstanceGroupByName("mysql_proxy")
+			Ω(ig.Networks).Should(HaveLen(1))
+			Ω(ig.Networks[0].Name).Should(Equal(newNetwork))
+
+			Ω(ig.Networks[0].StaticIPs).Should(HaveLen(2))
+			Ω(ig.Networks[0].StaticIPs).Should(ConsistOf("10.0.0.3-10.0.0.10", "10.0.16.5"))
 		})
 
 		It("returns an error when supplied with a non-existent partition", func() {
