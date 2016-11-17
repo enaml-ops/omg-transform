@@ -2,8 +2,6 @@ box: golang
 build:
   steps:
     - setup-go-workspace
-    #- wercker/golint:
-    #    exclude: "^vendor\\|enaml"
 
     # Gets the dependencies
     - script:
