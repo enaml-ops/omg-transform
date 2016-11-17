@@ -60,7 +60,7 @@ publish-draft-release:
         name: set release id variable for version
         code: |
           go get github.com/xchapter7x/versioning
-          export WERCKER_GITHUB_CREATE_RELEASE_ID=`versioning ${VERSION_COMMAND}`
+          export WERCKER_GITHUB_CREATE_RELEASE_ID=`versioning bump_patch`
 
     - github-create-release:
         token: $GITHUB_TOKEN
