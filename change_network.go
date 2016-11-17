@@ -39,7 +39,7 @@ func (n *NetworkMover) Apply(dm *enaml.DeploymentManifest) error {
 }
 
 func (n *NetworkMover) flagSet() *flag.FlagSet {
-	fs := flag.NewFlagSet("change-network", flag.ExitOnError)
+	fs := flag.NewFlagSet("change-network", flag.ContinueOnError)
 	fs.StringVar(&n.InstanceGroup, "instance-group", "", "name of the instance group")
 	fs.StringVar(&n.Network, "network", "", "the name of the network to use")
 	fs.StringVar(&n.ipsFlag, "static-ips", "", "comma-separated list of static IP ranges to set on the network")
