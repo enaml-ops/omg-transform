@@ -58,12 +58,12 @@ publish-draft-release:
         name: set release id variable for version
         code: |
           go get github.com/xchapter7x/versioning
-          export WERCKER_GITHUB_CREATE_RELEASE_ID=`versioning bump_patch`
+          export WERCKER_GITHUB_CREATE_RELEASE_ID=`versioning bump_patch`-`git rev-parse HEAD | cut -c1-6`
 
     - github-create-release:
         token: $GITHUB_TOKEN
         tag: $WERCKER_GITHUB_CREATE_RELEASE_ID
-        title: Omg Transform $WERCKER_GITHUB_CREATE_RELEASE_ID
+        title: Omg-Transform $WERCKER_GITHUB_CREATE_RELEASE_ID
         draft: true
 
     - github-upload-asset:
