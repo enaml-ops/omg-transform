@@ -1,7 +1,7 @@
 omg-transform
 =============
 
-An [`enaml`](https://github.com/enaml-ops/enaml) based tool 
+An [`enaml`](https://github.com/enaml-ops/enaml) based tool
 that allows you to perform transformations on bosh manifests.
 
 ## Development Setup
@@ -18,10 +18,10 @@ go test `glide nv`
 
 ## Usage
 
-By default, `omg-transform` attempts to read a manifest from standard in 
+By default, `omg-transform` attempts to read a manifest from standard in
 and writes the transformed manifest to standard out.
 
-For example, to run a transformation on a manifest produced by 
+For example, to run a transformation on a manifest produced by
 [`omg-cli`](https://github.com/enaml-ops/omg-cli):
 
 ```sh
@@ -33,6 +33,7 @@ omg-cli deploy-product --print-manifest cloudfoundry-plugin-linux | omg-transfor
  - `change-network`: change an instance group's network
  - `clone`: clone an instance group
  - `change-az`: change an instance group's AZs
+ - `add-vm-extension`: add a vm extension to an existing instance group
 
 ## Adding a new transformation
 
@@ -50,7 +51,7 @@ Implementing a transformation is straightforward.
     Take a look at the [clone transformation](clone_instance_group.go)
     for an example.
  4. Register your builder function in package main's `init()` function.
-    The name that you provide to `RegisterTransformationBuilder()` is the 
+    The name that you provide to `RegisterTransformationBuilder()` is the
     command that users will use to invoke your transformation.
 
  Don't forget to add tests!
