@@ -3,6 +3,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,6 +20,7 @@ func init() {
 	RegisterTransformationBuilder("change-network", ChangeNetworkTransformation)
 	RegisterTransformationBuilder("clone", CloneTransformation)
 	RegisterTransformationBuilder("change-az", ChangeAZTransformation)
+	RegisterTransformationBuilder("add-tags", AddTagsTransformation)
 }
 
 func main() {
@@ -38,6 +40,11 @@ func main() {
 
 	// create the transform based on the arg passed in by the user
 	transform, err := builder(os.Args[2:])
+	if err == flag.ErrHelp {
+		// help message was printed, so just exit
+		os.Exit(1)
+	}
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 		os.Exit(1)
