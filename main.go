@@ -22,6 +22,7 @@ func init() {
 	RegisterTransformationBuilder("clone", CloneTransformation)
 	RegisterTransformationBuilder("change-az", ChangeAZTransformation)
 	RegisterTransformationBuilder("add-tags", AddTagsTransformation)
+	RegisterTransformationBuilder("add-vm-extension", AddVMExtensionTransformation)
 }
 
 func main() {
