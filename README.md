@@ -1,6 +1,8 @@
 omg-transform
 =============
 
+[![wercker status](https://app.wercker.com/status/81ecedb0a515cab33d8e0554dab73271/s/master "wercker status")](https://app.wercker.com/project/byKey/81ecedb0a515cab33d8e0554dab73271)
+
 An [`enaml`](https://github.com/enaml-ops/enaml) based tool
 that allows you to perform transformations on bosh manifests.
 
