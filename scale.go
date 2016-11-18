@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 
 	"github.com/enaml-ops/enaml"
 )
@@ -14,10 +15,10 @@ type ScaleInstance struct {
 
 func (s *ScaleInstance) Apply(dm *enaml.DeploymentManifest) error {
 	ig := dm.GetInstanceGroupByName(s.InstanceGroup)
-	///_ = ig // to remove unused error.
-
+	if ig == nil {
+		return fmt.Errorf("couldn't find instance group %s", s.InstanceGroup)
+	}
 	ig.Instances = s.Scale
-
 	return nil
 }
 
@@ -25,7 +26,6 @@ func (s *ScaleInstance) flagSet() *flag.FlagSet {
 	fs := flag.NewFlagSet("scale", flag.ContinueOnError)
 	fs.StringVar(&s.InstanceGroup, "instance-group", "", "name of the instance group")
 	fs.IntVar(&s.Scale, "instances", -1, "number of instances")
-
 	return fs
 }
 
@@ -45,10 +45,5 @@ func ScaleInstanceTransform(args []string) (Transformation, error) {
 	if s.Scale < 0 {
 		return nil, errors.New("Missing required flag -scale or invalid value")
 	}
-
-	/*	if s.Scale ==  {
-			return nil, errors.New("Missing required flag -instance-group")
-		}
-	*/
 	return s, err
 }

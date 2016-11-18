@@ -66,6 +66,14 @@ var _ = Describe("Scale instances", func() {
 			ig := manifest.GetInstanceGroupByName("router")
 			Ω(ig.Instances).Should(Equal(3))
 		})
+
+		It("returns an error when given an invalid instance group", func() {
+			s := ScaleInstance{
+				InstanceGroup: "foobar",
+				Scale:         2,
+			}
+			Ω(s.Apply(manifest)).ShouldNot(Succeed())
+		})
 	})
 
 })
