@@ -28,8 +28,10 @@ build:
     - script:
         name: compile for all platforms
         code: |
-          GOOS=darwin go build  -o  omg-transform-osx -ldflags "-X main.Version=${WERCKER_GITHUB_CREATE_RELEASE_ID}-`git rev-parse HEAD | cut -c1-6`" *.go
-          GOOS=linux go build   -o  omg-transform-linux -ldflags "-X main.Version=${WERCKER_GITHUB_CREATE_RELEASE_ID}-`git rev-parse HEAD | cut -c1-6`" *.go
+          GOOS=darwin go build  -o  omg-transform-osx -ldflags "-X main.Version=${WERCKER_GITHUB_CREATE_RELEASE_ID}-`git rev-parse HEAD | cut -c1-6`" cmd/manifest/main.go
+          GOOS=linux go build   -o  omg-transform-linux -ldflags "-X main.Version=${WERCKER_GITHUB_CREATE_RELEASE_ID}-`git rev-parse HEAD | cut -c1-6`" cmd/manifest/main.go
+          GOOS=darwin go build  -o  omg-transform-cloudconfig-osx -ldflags "-X main.Version=${WERCKER_GITHUB_CREATE_RELEASE_ID}-`git rev-parse HEAD | cut -c1-6`" cmd/cloudconfig/main.go
+          GOOS=linux go build   -o  omg-transform-cloudconfig-linux -ldflags "-X main.Version=${WERCKER_GITHUB_CREATE_RELEASE_ID}-`git rev-parse HEAD | cut -c1-6`" cmd/cloudconfig/main.go
 
     - script:
         name: add repo to artifact
@@ -75,5 +77,17 @@ publish-draft-release:
     - github-upload-asset:
         token: $GITHUB_TOKEN
         file: omg-transform-linux
+        release_id: $WERCKER_GITHUB_CREATE_RELEASE_ID
+        content-type: application/x-gzip
+
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: omg-transform-cloudconfig-osx
+        release_id: $WERCKER_GITHUB_CREATE_RELEASE_ID
+        content-type: application/x-gzip
+
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: omg-transform-cloudconfig-linux
         release_id: $WERCKER_GITHUB_CREATE_RELEASE_ID
         content-type: application/x-gzip

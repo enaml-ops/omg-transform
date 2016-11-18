@@ -1,5 +1,5 @@
 // omg-transform is a tool for applying transformations to
-// bosh deployment manifests.
+// bosh cloud configs.
 package main
 
 import (
@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/enaml-ops/enaml"
+	"github.com/enaml-ops/omg-transform/cloudconfig"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -18,11 +19,7 @@ import (
 var Version = "v0.0.0-localcompile"
 
 func init() {
-	RegisterTransformationBuilder("change-network", ChangeNetworkTransformation)
-	RegisterTransformationBuilder("clone", CloneTransformation)
-	RegisterTransformationBuilder("change-az", ChangeAZTransformation)
-	RegisterTransformationBuilder("add-tags", AddTagsTransformation)
-	RegisterTransformationBuilder("add-vm-extension", AddVMExtensionTransformation)
+	//	manifest.RegisterTransformationBuilder("change-network", manifest.ChangeNetworkTransformation)
 }
 
 func main() {
@@ -66,21 +63,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	manifest := enaml.NewDeploymentManifest(b)
-	if manifest == nil {
-		fmt.Fprintln(os.Stderr, "ERROR: invalid input manifest")
+	cloudconfigManifest := enaml.NewCloudConfigManifest(b)
+	if cloudconfigManifest == nil {
+		fmt.Fprintln(os.Stderr, "ERROR: invalid input cloud config")
 		os.Exit(1)
 	}
 
 	// apply the transformation
-	err = transform.Apply(manifest)
+	err = transform.Apply(cloudconfigManifest)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 		os.Exit(1)
 	}
 
 	// write the transformed manifest back to stdout
-	b, err = yaml.Marshal(manifest)
+	b, err = yaml.Marshal(cloudconfigManifest)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 		os.Exit(1)
@@ -93,4 +90,17 @@ func writeTransforms(w io.Writer) {
 	for t := range transformationBuilders {
 		fmt.Fprintf(w, "  %s\n", t)
 	}
+}
+
+var transformationBuilders map[string]cloudconfig.TransformationBuilder
+
+// RegisterTransformationBuilder registers a transformation builder with the specified name.
+func RegisterTransformationBuilder(name string, tb cloudconfig.TransformationBuilder) {
+	if transformationBuilders == nil {
+		transformationBuilders = make(map[string]cloudconfig.TransformationBuilder)
+	}
+	if _, ok := transformationBuilders[name]; ok {
+		panic(fmt.Errorf("duplicate transformation %q\n\nThis is a development error and should be reported at https://github.com/enaml-ops/omg-transform/issues", name))
+	}
+	transformationBuilders[name] = tb
 }
