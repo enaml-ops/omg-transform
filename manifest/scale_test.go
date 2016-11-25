@@ -42,6 +42,12 @@ var _ = Describe("Scale instances", func() {
 			Ω(t).ShouldNot(BeNil())
 		})
 
+		It("Should not let you scale singleton instances higher than 1", func() {
+			_, err := ScaleInstanceTransform([]string{"-instance-group", "clock_global", "-instances", "3"})
+			Ω(err).Should(HaveOccurred())
+
+		})
+
 	})
 
 	Context("PCF 1.8 AWS manifest", func() {
